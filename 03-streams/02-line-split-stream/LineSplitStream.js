@@ -11,11 +11,19 @@ class LineSplitStream extends stream.Transform {
   _transform(chunk, encoding, callback) {
     const str = chunk.toString();
     if (str.includes(os.EOL)) {
-      const chunkArr = str.split(os.EOL);
-      const strBeforeSpace = chunkArr[0];
-      const strAfterSpace = chunkArr.slice(1).join('');
-      this.push(this.concatStr + strBeforeSpace);
-      this.concatStr = strAfterSpace;
+      const linesArr = str.split(os.EOL);
+      linesArr.forEach((item, index) => {
+        if (!item) {
+          this.push(this.concatStr);
+          this.concatStr = '';
+        }
+        if (index === linesArr.length - 1 ) {
+          this.concatStr += item;
+        } else {
+          this.push(this.concatStr + item);
+          this.concatStr = '';
+        }
+      });
     } else {
       this.concatStr += str;
     }
@@ -24,6 +32,7 @@ class LineSplitStream extends stream.Transform {
 
   _flush(callback) {
     this.push(this.concatStr);
+    this.concatStr = '';
     callback();
   }
 }
