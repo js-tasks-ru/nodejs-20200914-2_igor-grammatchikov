@@ -21,8 +21,13 @@ server.on('request', (req, res) => {
       const readStream = fs.createReadStream(filepath);
       readStream.pipe(res);
       readStream.on('error', (err) => {
-        res.statusCode = 404;
-        res.end('статус код ответа 404');
+        if (err.code === 'ENOENT') {
+          res.statusCode = 404;
+          res.end('Файл не найден');
+        } else {
+          res.statusCode = 500;
+          res.end('Ошибка сервера');
+        }
       });
       break;
 
